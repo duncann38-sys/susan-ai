@@ -786,6 +786,75 @@ textarea:focus, input[type="text"]:focus {
   margin-top: 12px;
 }
 
+.cv-section-head {
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--navy);
+  border-bottom: 2px solid var(--navy);
+  padding-bottom: 4px;
+  margin: 22px 0 10px;
+}
+
+.cv-job-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 12px 0 4px;
+}
+
+.cv-pipe {
+  color: var(--sky);
+  font-weight: 400;
+}
+
+.cv-bullets {
+  margin: 4px 0 8px 0;
+  padding-left: 18px;
+  list-style: none;
+}
+
+.cv-bullets li {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 5px;
+  padding-left: 6px;
+  position: relative;
+}
+
+.cv-bullets li::before {
+  content: '–';
+  position: absolute;
+  left: -14px;
+  color: var(--sky);
+  font-weight: 600;
+}
+
+.cv-para {
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--text);
+  margin: 5px 0;
+}
+
+.cv-spacer { height: 6px; }
+.cv-rule { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+.cover-letter-box p {
+  font-size: 14px;
+  line-height: 1.85;
+  margin: 0 0 14px;
+}
+
+.cover-letter-box .cv-section-head {
+  color: var(--sky);
+  border-color: var(--sky);
+}
+
 footer {
   text-align: center;
   padding: 32px 24px;
@@ -1133,9 +1202,7 @@ async function startGeneration() {
   document.getElementById('loading').style.display = 'flex';
   const interval = animateLoadingSteps();
 
-  const prompt = `You are Susan, a world-class career coach and ATS optimisation expert. You have deep knowledge of how Workday, Greenhouse, Taleo, Lever, and iCIMS parse and score CVs.
-
-Analyse the candidate's CV against the job description and produce a complete, professional application pack.
+  const prompt = `You are Susan, an elite career coach and ATS expert who has helped thousands of candidates land jobs at top companies. You write CVs and cover letters that sound like they were written by a sharp, self-aware human — not an AI. Recruiters read hundreds of CVs; yours must feel different.
 
 CANDIDATE'S CURRENT CV:
 ${cv}
@@ -1151,33 +1218,67 @@ Respond in EXACTLY this format with these EXACT section headers:
 Original: [score]/100 | Optimised: [score]/100
 
 ## MISSING KEYWORDS
-[comma-separated list of 8-10 most important missing keywords]
+[comma-separated list of 8-10 most critical missing keywords from the job description]
 
 ## ATS ANALYSIS
-[3-4 sentences explaining what was wrong and what was fixed]
+[3-4 sentences explaining the specific gaps found and exactly what was improved. Be direct and specific — name the actual keywords and sections that were weak.]
 
 ## REWRITTEN CV
-[Write the complete rewritten CV using these rules:
-- Start with candidate's name as a header
-- Clear sections: Professional Profile | Work Experience | Education | Skills | Achievements
-- 3-sentence professional profile tailored to this exact role
-- Each job: company, title, dates, then 3-4 bullet points starting with strong action verbs
-- Every bullet: Action verb + what you did + measurable result where possible
-- Exact keywords from job description woven in naturally throughout
-- Both full terms and abbreviations: e.g. Search Engine Optimisation (SEO)
-- No tables, no graphics, no generic phrases
-- Clean, professional formatting with clear spacing between sections
-- This should be ready to copy and send immediately]
+
+WRITING RULES FOR THE CV — follow every one of these:
+
+VOICE & TONE:
+- Write in first person implied (no "I") — active, direct, confident
+- Sound like a sharp professional wrote this themselves, not an AI
+- Vary sentence length and structure — mix short punchy bullets with richer descriptive ones
+- Use specific, concrete language. Never vague. "Grew pipeline by 40%" beats "improved sales performance"
+- Avoid ALL AI clichés: no "spearheaded", "leveraged", "demonstrated ability to", "proven track record of", "passionate about", "results-driven", "dynamic", "synergy", "utilised"
+- Do not start every bullet with the same type of verb — vary the rhythm
+- Include natural imperfections that signal human authorship — mix of formal and slightly informal phrasing where appropriate
+
+STRUCTURE & FORMATTING:
+[CANDIDATE NAME]
+[Location] | [Phone] | [Email]
+
+PROFESSIONAL PROFILE
+[3 sentences. First: who they are and what they do. Second: what makes them distinctively good at it — something specific from their background. Third: what they're looking for or what drives them. Must feel like it was written by the candidate, not about them. No generic opener.]
+
+WORK EXPERIENCE
+
+[Job Title] | [Company] | [Dates]
+[One sentence giving context on what the company/role was, if not obvious]
+- [Bullet 1: most impressive achievement — lead with outcome, then explain how]
+- [Bullet 2: specific responsibility that maps directly to the job description]
+- [Bullet 3: demonstrates collaboration, leadership, or cross-functional work]
+- [Bullet 4 if strong enough: another standout achievement]
+
+[Repeat for each role]
+
+SKILLS
+[Group into 3-4 meaningful categories with a label. Use natural language, not just lists of buzzwords. Include all exact keywords from the job description plus abbreviations where relevant e.g. Customer Relationship Management (CRM)]
+
+EDUCATION
+[Degree | Institution | Year if recent]
+
+ACHIEVEMENTS (if notable ones exist beyond job bullets)
+[2-3 standout achievements that didn't fit naturally in roles]
+
+COVER LETTER TONE: ${tone}
 
 ## COVER LETTER
-[Complete tailored cover letter, tone: ${tone}:
-- Specific opening hook referencing the company or role
-- Paragraph 2: most relevant experience with specific achievements
-- Paragraph 3: why this specific company
-- Strong close with call to action
-- Under 350 words
-- NO "I am writing to apply" or "I believe I would be a great fit"
-- Format: Dear Hiring Manager, [paragraphs], Yours sincerely]`;
+
+WRITING RULES FOR THE COVER LETTER — follow every one of these:
+
+- Open with something specific about the company or the problem they solve — not about yourself. Show you've actually thought about them.
+- DO NOT start with "I am writing to apply" or "I believe I would be a great fit" or "I am excited to apply"
+- Paragraph 1 (3-4 sentences): Why this company, why now — make it feel researched and genuine
+- Paragraph 2 (4-5 sentences): Your most relevant experience. Tell a micro-story — what the situation was, what you did, what happened. Use a specific example from their CV. Include a real number or result where possible.
+- Paragraph 3 (3-4 sentences): What you bring that's distinctive. Don't repeat the CV — add something new about how you think or work
+- Close (2 sentences): Confident, direct call to action. No grovelling.
+- Total: 280-340 words. Not a word more.
+- Tone must feel human, warm but not sycophantic, confident but not arrogant
+- Avoid AI clichés: no "I am passionate", "I would be an asset", "I thrive in", "I am excited about the opportunity"
+- Format: Dear Hiring Manager, [paragraphs], Yours sincerely, [Name]`;
 
   try {
     const response = await fetch('https://susan-proxy.duncann38.workers.dev/', {
@@ -1225,6 +1326,81 @@ function showPreviewAndPaywall(text) {
   document.getElementById('preview-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// ── MARKDOWN RENDERER ──
+function renderMarkdown(text) {
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+
+  lines.forEach(line => {
+    // Strip leading/trailing whitespace
+    const trimmed = line.trim();
+
+    // Section headers: ### or ## or ALL CAPS lines
+    if (/^###\s+/.test(trimmed)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      const t = trimmed.replace(/^###\s+/, '');
+      html += `<div class="cv-section-head">${escHtml(t)}</div>`;
+    } else if (/^##\s+/.test(trimmed)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      const t = trimmed.replace(/^##\s+/, '');
+      html += `<div class="cv-section-head">${escHtml(t)}</div>`;
+    } else if (/^[A-Z][A-Z\s&\/]{4,}$/.test(trimmed) && trimmed.length < 50) {
+      // All-caps section title
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<div class="cv-section-head">${escHtml(trimmed)}</div>`;
+    } else if (/^\*\*(.+)\*\*\s*\|/.test(trimmed) || /^[A-Z].+\s\|\s/.test(trimmed)) {
+      // Job title line: **Title** | Company | Dates
+      if (inList) { html += '</ul>'; inList = false; }
+      const formatted = inlineMd(trimmed);
+      html += `<div class="cv-job-title">${formatted}</div>`;
+    } else if (/^[-•–]\s+/.test(trimmed)) {
+      // Bullet
+      if (!inList) { html += '<ul class="cv-bullets">'; inList = true; }
+      const content = inlineMd(trimmed.replace(/^[-•–]\s+/, ''));
+      html += `<li>${content}</li>`;
+    } else if (trimmed === '' || trimmed === '---') {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (trimmed === '---') {
+        html += '<hr class="cv-rule">';
+      } else {
+        html += '<div class="cv-spacer"></div>';
+      }
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p class="cv-para">${inlineMd(trimmed)}</p>`;
+    }
+  });
+
+  if (inList) html += '</ul>';
+  return html;
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function inlineMd(text) {
+  // Bold: **text**
+  text = escHtml(text);
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic: *text*
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // Pipe separators → styled
+  text = text.replace(/\s\|\s/g, '<span class="cv-pipe"> · </span>');
+  return text;
+}
+
+// Strip markdown to plain text for copy
+function stripMd(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/^#{1,3}\s+/gm, '')
+    .replace(/^---$/gm, '')
+    .trim();
+}
+
 window.unlockFullResults = function() {
   const text = window._fullResult;
   if (!text) return;
@@ -1245,18 +1421,37 @@ window.unlockFullResults = function() {
   window._cvText = cvText;
   window._coverText = coverText;
 
+  const origN = parseInt(orig) || 0;
+  const optN = parseInt(opt) || 0;
+  const lift = optN - origN;
+
   document.getElementById('scores-row').innerHTML = `
-    <div class="score-box"><div class="score-n bad">${orig}/100</div><div class="score-lbl">Original Score</div></div>
-    <div class="score-box"><div class="score-n good">${opt}/100</div><div class="score-lbl">After Susan</div></div>
-    <div class="score-box"><div class="score-n info">${missing.split(',').slice(0,2).join(', ')}...</div><div class="score-lbl">Keywords Added</div></div>
+    <div class="score-box">
+      <div class="score-n bad">${orig}<span style="font-size:14px;font-weight:600">/100</span></div>
+      <div class="score-lbl">Original ATS Score</div>
+    </div>
+    <div class="score-box">
+      <div class="score-n good">${opt}<span style="font-size:14px;font-weight:600">/100</span></div>
+      <div class="score-lbl">After Susan</div>
+    </div>
+    <div class="score-box">
+      <div class="score-n good" style="font-size:20px">+${lift} pts</div>
+      <div class="score-lbl">Score Improvement</div>
+    </div>
   `;
 
-  document.getElementById('analysis-out').textContent =
-    (analysisMatch ? analysisMatch[1].trim() : '') + '\n\nKeywords added: ' + missing;
-  document.getElementById('cv-out').textContent = cvText;
+  // Render analysis
+  const analysisText = (analysisMatch ? analysisMatch[1].trim() : '');
+  document.getElementById('analysis-out').innerHTML =
+    `<p style="margin-bottom:12px">${analysisText.replace(/\n/g,'<br>')}</p>
+     <div style="margin-top:12px"><strong style="color:var(--navy);font-size:12px;text-transform:uppercase;letter-spacing:.05em">Keywords Added</strong><br>
+     <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${missing.split(',').map(k=>k.trim()).filter(Boolean).map(k=>`<span style="background:var(--sky-light);border:1px solid var(--sky-mid);color:var(--navy);padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600">${k}</span>`).join('')}</div></div>`;
+
+  // Render CV with markdown
+  document.getElementById('cv-out').innerHTML = renderMarkdown(cvText);
 
   if (currentTab !== 'cv') {
-    document.getElementById('cover-out').textContent = coverText;
+    document.getElementById('cover-out').innerHTML = renderMarkdown(coverText);
     document.getElementById('cover-section').style.display = 'block';
   } else {
     document.getElementById('cover-section').style.display = 'none';
@@ -1269,11 +1464,11 @@ window.unlockFullResults = function() {
 };
 
 async function copyAll() {
-  const cv = window._cvText;
-  const cover = window._coverText;
+  const cv = stripMd(window._cvText || '');
+  const cover = stripMd(window._coverText || '');
   const full = currentTab === 'cv' ? cv :
                currentTab === 'cover' ? cover :
-               `=== CV ===\n\n${cv}\n\n=== COVER LETTER ===\n\n${cover}`;
+               `CV\n${'─'.repeat(40)}\n\n${cv}\n\n\nCOVER LETTER\n${'─'.repeat(40)}\n\n${cover}`;
   const btn = document.getElementById('copy-btn');
   try {
     await navigator.clipboard.writeText(full);
@@ -1285,85 +1480,249 @@ async function copyAll() {
 function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const margin = 20;
-  const lineH = 6;
+  const marginL = 18, marginR = 18, marginT = 18;
   const pageW = doc.internal.pageSize.getWidth();
-  const maxW = pageW - margin * 2;
+  const pageH = doc.internal.pageSize.getHeight();
+  const maxW = pageW - marginL - marginR;
+  const NAVY = [26, 58, 92];
+  const BLACK = [30, 30, 30];
+  const GREY = [100, 110, 120];
+  const LIGHT = [240, 246, 252];
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(26, 58, 92);
+  function addPage() { doc.addPage(); return marginT; }
 
-  if (window._cvText) {
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CV — Prepared by Susan AI', margin, margin);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(50, 50, 50);
-
-    let y = margin + 10;
-    const lines = doc.splitTextToSize(window._cvText, maxW);
-    lines.forEach(line => {
-      if (y > 280) { doc.addPage(); y = margin; }
-      if (line.startsWith('Professional Profile') || line.startsWith('Work Experience') ||
-          line.startsWith('Education') || line.startsWith('Skills') || line.startsWith('Achievements')) {
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(26, 58, 92);
-      } else {
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(50, 50, 50);
-      }
-      doc.text(line, margin, y);
-      y += lineH;
-    });
+  function checkY(y, needed = 10) {
+    if (y + needed > pageH - 14) return addPage();
+    return y;
   }
 
+  function renderCVtoPDF(rawText) {
+    let y = marginT;
+    const lines = rawText.split('\n');
+    let firstLine = true;
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed && !firstLine) { y += 3; return; }
+      if (!trimmed) return;
+      firstLine = false;
+
+      // Name (first non-empty line if it looks like a name)
+      if (firstLine === false && y === marginT + 0 && !/^[#\-•]/.test(trimmed) && !trimmed.includes('|') && trimmed.split(' ').length <= 5 && /^[A-Z]/.test(trimmed)) {
+        // handled below
+      }
+
+      // Section header
+      const isSectionHead = /^#{1,3}\s+/.test(trimmed) || /^[A-Z][A-Z\s&\/]{4,}$/.test(trimmed);
+      // Job title line
+      const isJobTitle = /\s\|\s/.test(trimmed) && !trimmed.startsWith('-');
+      // Bullet
+      const isBullet = /^[-•–]\s+/.test(trimmed);
+
+      if (isSectionHead) {
+        y = checkY(y, 14);
+        const label = trimmed.replace(/^#{1,3}\s+/, '').toUpperCase();
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(...NAVY);
+        doc.text(label, marginL, y);
+        y += 1.5;
+        doc.setDrawColor(...NAVY);
+        doc.setLineWidth(0.5);
+        doc.line(marginL, y, pageW - marginR, y);
+        y += 5;
+      } else if (isJobTitle) {
+        y = checkY(y, 8);
+        const parts = trimmed.replace(/\*\*/g, '').split(/\s\|\s/);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...BLACK);
+        doc.text(parts[0] || '', marginL, y);
+        if (parts[1]) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(...NAVY);
+          const p1w = doc.getTextWidth(parts[0] + '  ·  ');
+          doc.text('  ·  ' + parts[1], marginL + doc.getTextWidth(parts[0]), y);
+        }
+        if (parts[2]) {
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(9);
+          doc.setTextColor(...GREY);
+          const rightText = parts[2];
+          doc.text(rightText, pageW - marginR - doc.getTextWidth(rightText), y);
+        }
+        y += 6;
+      } else if (isBullet) {
+        y = checkY(y, 6);
+        const content = trimmed.replace(/^[-•–]\s+/, '').replace(/\*\*(.+?)\*\*/g, '$1');
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(...BLACK);
+        doc.text('–', marginL + 2, y);
+        const wrapped = doc.splitTextToSize(content, maxW - 10);
+        wrapped.forEach((wl, i) => {
+          y = checkY(y, 5);
+          doc.text(wl, marginL + 9, y);
+          if (i < wrapped.length - 1) y += 5;
+        });
+        y += 5.5;
+      } else {
+        // Regular paragraph
+        const clean = trimmed.replace(/\*\*(.+?)\*\*/g, '$1').replace(/^---$/, '');
+        if (!clean || clean === '---') { y += 2; return; }
+        y = checkY(y, 6);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(...BLACK);
+        const wrapped = doc.splitTextToSize(clean, maxW);
+        wrapped.forEach((wl, i) => {
+          y = checkY(y, 5);
+          doc.text(wl, marginL, y);
+          if (i < wrapped.length - 1) y += 5;
+        });
+        y += 5.5;
+      }
+    });
+    return y;
+  }
+
+  // ── CV PAGE ──
+  if (window._cvText) {
+    renderCVtoPDF(window._cvText);
+  }
+
+  // ── COVER LETTER PAGE ──
   if (window._coverText && currentTab !== 'cv') {
     doc.addPage();
-    doc.setFontSize(14);
+    let y = marginT;
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(26, 58, 92);
-    doc.text('Cover Letter — Prepared by Susan AI', margin, margin);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(11);
+    doc.setTextColor(...NAVY);
+    doc.text('COVER LETTER', marginL, y);
+    y += 2;
+    doc.setDrawColor(...NAVY);
+    doc.setLineWidth(0.5);
+    doc.line(marginL, y, pageW - marginR, y);
+    y += 8;
 
-    let y = margin + 10;
-    const lines = doc.splitTextToSize(window._coverText, maxW);
-    lines.forEach(line => {
-      if (y > 280) { doc.addPage(); y = margin; }
-      doc.text(line, margin, y);
-      y += lineH;
+    const coverClean = window._coverText.replace(/\*\*(.+?)\*\*/g, '$1').replace(/^#{1,3}\s+/gm, '');
+    const coverParas = coverClean.split('\n\n');
+    coverParas.forEach(para => {
+      const trimmed = para.trim();
+      if (!trimmed) return;
+      y = checkY(y, 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...BLACK);
+      const wrapped = doc.splitTextToSize(trimmed, maxW);
+      wrapped.forEach(wl => {
+        y = checkY(y, 5);
+        doc.text(wl, marginL, y);
+        y += 5.5;
+      });
+      y += 4;
     });
   }
 
-  const name = window._jobTitle ? `Susan_AI_${window._jobTitle.replace(/\s+/g,'_')}` : 'Susan_AI_CV';
+  // Footer on every page
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(160, 170, 180);
+    doc.text('Prepared by Susan AI · susanai.co', marginL, pageH - 8);
+    doc.text(`Page ${i} of ${totalPages}`, pageW - marginR - doc.getTextWidth(`Page ${i} of ${totalPages}`), pageH - 8);
+  }
+
+  const name = window._jobTitle ? `${window._jobTitle.replace(/\s+/g,'_')}_Application` : 'Susan_AI_Application';
   doc.save(`${name}.pdf`);
 }
 
 function downloadWord() {
   const cv = window._cvText || '';
   const cover = window._coverText || '';
-  const company = window._company || 'Company';
   const jobTitle = window._jobTitle || 'Role';
+  const company = window._company || 'Company';
 
-  let content = `CV — Prepared by Susan AI\n`;
-  content += `Application for: ${jobTitle} at ${company}\n`;
-  content += `Generated: ${new Date().toLocaleDateString('en-GB')}\n\n`;
-  content += `${'='.repeat(50)}\n\nCV\n\n${'='.repeat(50)}\n\n`;
-  content += cv;
+  function mdToHtml(text) {
+    const lines = text.split('\n');
+    let html = '';
+    let inList = false;
+    lines.forEach(line => {
+      const t = line.trim();
+      const isSectionHead = /^#{1,3}\s+/.test(t) || /^[A-Z][A-Z\s&\/]{4,}$/.test(t);
+      const isJobTitle = /\s\|\s/.test(t) && !t.startsWith('-');
+      const isBullet = /^[-•–]\s+/.test(t);
 
-  if (cover && currentTab !== 'cv') {
-    content += `\n\n${'='.repeat(50)}\n\nCOVER LETTER\n\n${'='.repeat(50)}\n\n`;
-    content += cover;
+      if (isSectionHead) {
+        if (inList) { html += '</ul>'; inList = false; }
+        const label = t.replace(/^#{1,3}\s+/, '');
+        html += `<h2 style="font-family:Arial,sans-serif;font-size:11pt;color:#1a3a5c;text-transform:uppercase;border-bottom:1.5px solid #1a3a5c;padding-bottom:3px;margin:18px 0 6px">${label}</h2>`;
+      } else if (isJobTitle) {
+        if (inList) { html += '</ul>'; inList = false; }
+        const parts = t.replace(/\*\*/g,'').split(/\s\|\s/);
+        html += `<p style="font-family:Arial,sans-serif;font-size:10.5pt;margin:10px 0 3px"><strong style="color:#1a2e40">${parts[0]||''}</strong>${parts[1]?' <span style="color:#1a3a5c">· '+parts[1]+'</span>':''}<span style="color:#6b8299;font-style:italic;float:right">${parts[2]||''}</span></p>`;
+      } else if (isBullet) {
+        if (!inList) { html += '<ul style="margin:4px 0 4px 18px;padding:0">'; inList = true; }
+        const content = t.replace(/^[-•–]\s+/,'').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+        html += `<li style="font-family:Arial,sans-serif;font-size:10pt;color:#1a2e40;margin-bottom:4px">${content}</li>`;
+      } else if (!t || t === '---') {
+        if (inList) { html += '</ul>'; inList = false; }
+        html += '<br>';
+      } else {
+        if (inList) { html += '</ul>'; inList = false; }
+        const content = t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+        html += `<p style="font-family:Arial,sans-serif;font-size:10pt;color:#1a2e40;margin:4px 0">${content}</p>`;
+      }
+    });
+    if (inList) html += '</ul>';
+    return html;
   }
 
-  const blob = new Blob([content], { type: 'application/msword' });
+  const nameMatch = cv.match(/^([A-Z][a-zA-Z\s]+)\n/);
+  const candidateName = nameMatch ? nameMatch[1].trim() : 'Candidate';
+
+  let html = `
+  <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+  <head><meta charset='utf-8'><title>${candidateName} — Application</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 10pt; color: #1a2e40; margin: 2cm; }
+    h1 { font-size: 22pt; color: #1a3a5c; text-align: center; margin-bottom: 4px; }
+    .contact { text-align: center; color: #6b8299; font-size: 9pt; margin-bottom: 20px; }
+    h2 { font-size: 11pt; color: #1a3a5c; text-transform: uppercase; border-bottom: 1.5px solid #1a3a5c; padding-bottom: 3px; margin: 18px 0 6px; }
+    p { font-size: 10pt; line-height: 1.55; margin: 4px 0; }
+    li { font-size: 10pt; line-height: 1.55; margin-bottom: 4px; }
+    .page-break { page-break-before: always; }
+    .footer { text-align: center; color: #aaa; font-size: 8pt; margin-top: 40px; }
+  </style></head><body>`;
+
+  // CV section
+  const cvLines = cv.split('\n');
+  const firstLine = cvLines[0]?.trim() || '';
+  const restCV = cvLines.slice(1).join('\n');
+
+  html += `<h1>${firstLine.replace(/\*\*/g,'')}</h1>`;
+  html += mdToHtml(restCV);
+  html += `<p class="footer">Prepared by Susan AI &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB')}</p>`;
+
+  // Cover letter section
+  if (cover && currentTab !== 'cv') {
+    html += `<div class="page-break"></div>`;
+    html += `<h1 style="font-size:16pt">Cover Letter</h1>`;
+    html += `<p style="text-align:center;color:#6b8299;font-size:9pt;margin-bottom:20px">Application for ${jobTitle}${company ? ' at ' + company : ''}</p>`;
+    html += mdToHtml(cover);
+    html += `<p class="footer">Prepared by Susan AI &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB')}</p>`;
+  }
+
+  html += '</body></html>';
+
+  const blob = new Blob([html], { type: 'application/msword' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `Susan_AI_${jobTitle.replace(/\s+/g,'_')}.doc`;
+  a.download = `${candidateName.replace(/\s+/g,'_')}_${jobTitle.replace(/\s+/g,'_')}.doc`;
   a.click();
   URL.revokeObjectURL(url);
 }
