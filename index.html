@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1484,10 +1483,15 @@ SKILLS
 [Group into 3-4 meaningful categories with a label. Use natural language, not just lists of buzzwords. Include all exact keywords from the job description plus abbreviations where relevant e.g. Customer Relationship Management (CRM)]
 
 EDUCATION
-[Degree | Institution | Year if recent]
+CRITICAL RULES FOR EDUCATION:
+- Only include this section if the candidate has a university degree, professional qualification, or relevant certification
+- If they have a degree: write "Degree Title | University Name | Year"
+- If they have professional certs (e.g. CFA, ACCA, AWS): list them here
+- If the only education is GCSEs, A-Levels, or secondary school — DO NOT include an Education section at all. Omit it entirely. A missing section is far better than "Secondary education completed" which looks weak.
+- If education is unclear from the CV, omit the section entirely
 
-ACHIEVEMENTS (if notable ones exist beyond job bullets)
-[2-3 standout achievements that didn't fit naturally in roles]
+ACHIEVEMENTS
+Only include this section if there are genuinely standout achievements that aren't already captured in the work experience bullets. Examples: awards, press coverage, significant milestones. If nothing truly standout exists beyond what's in the roles, omit this section entirely. Never pad this section with weak entries.
 
 COVER LETTER TONE: ${tone}
 
@@ -1746,164 +1750,307 @@ async function copyAll() {
 function downloadPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const marginL = 18, marginR = 18, marginT = 18;
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const maxW = pageW - marginL - marginR;
-  const NAVY = [26, 58, 92];
-  const BLACK = [30, 30, 30];
-  const GREY = [100, 110, 120];
-  const LIGHT = [240, 246, 252];
 
-  function addPage() { doc.addPage(); return marginT; }
+  const PW = doc.internal.pageSize.getWidth();
+  const PH = doc.internal.pageSize.getHeight();
+  const ML = 20, MR = 20, MT = 22, MB = 18;
+  const CW = PW - ML - MR;
 
-  function checkY(y, needed = 10) {
-    if (y + needed > pageH - 14) return addPage();
-    return y;
+  // ── COLOUR PALETTE ──
+  const C = {
+    navy:    [26,  58,  92],
+    black:   [22,  22,  22],
+    dark:    [45,  55,  65],
+    mid:     [90, 105, 118],
+    light:   [160, 172, 182],
+    accent:  [74, 159, 212],
+    rule:    [210, 222, 232],
+    pageBg:  [250, 252, 254],
+  };
+
+  // ── TYPOGRAPHY ──
+  const T = {
+    name:      { size: 22, font: 'helvetica', style: 'bold',   color: C.navy  },
+    contact:   { size: 8.5, font: 'helvetica', style: 'normal', color: C.mid   },
+    section:   { size: 8,  font: 'helvetica', style: 'bold',   color: C.navy  },
+    jobTitle:  { size: 10, font: 'helvetica', style: 'bold',   color: C.black },
+    company:   { size: 10, font: 'helvetica', style: 'normal', color: C.accent },
+    dates:     { size: 9,  font: 'helvetica', style: 'italic',  color: C.mid   },
+    context:   { size: 9,  font: 'helvetica', style: 'italic',  color: C.mid   },
+    bullet:    { size: 9.5, font: 'helvetica', style: 'normal', color: C.dark  },
+    body:      { size: 9.5, font: 'helvetica', style: 'normal', color: C.dark  },
+    footer:    { size: 7.5, font: 'helvetica', style: 'normal', color: C.light },
+  };
+
+  function setT(t) {
+    doc.setFont(t.font, t.style);
+    doc.setFontSize(t.size);
+    doc.setTextColor(...t.color);
   }
 
-  function renderCVtoPDF(rawText) {
-    let y = marginT;
-    const lines = rawText.split('\n');
-    let firstLine = true;
+  let y = MT;
+  let pageNum = 1;
 
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      if (!trimmed && !firstLine) { y += 3; return; }
-      if (!trimmed) return;
-      firstLine = false;
+  function newPage() {
+    doc.addPage();
+    y = MT;
+    pageNum++;
+  }
 
-      // Name (first non-empty line if it looks like a name)
-      if (firstLine === false && y === marginT + 0 && !/^[#\-•]/.test(trimmed) && !trimmed.includes('|') && trimmed.split(' ').length <= 5 && /^[A-Z]/.test(trimmed)) {
-        // handled below
+  function checkY(need) {
+    if (y + need > PH - MB - 10) newPage();
+  }
+
+  function hRule(yy, color = C.rule, thick = 0.3) {
+    doc.setDrawColor(...color);
+    doc.setLineWidth(thick);
+    doc.line(ML, yy, PW - MR, yy);
+  }
+
+  // ── PARSE CV TEXT ──
+  function parseCVLines(raw) {
+    const lines = raw.split('\n');
+    const parsed = [];
+    let nameFound = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const t = lines[i].trim();
+      if (!t) { parsed.push({ type: 'space' }); continue; }
+
+      // Name: first non-empty, non-special line
+      if (!nameFound && !/^[#\-•–·]/.test(t) && !t.includes('|') && /^[A-Z]/.test(t)) {
+        parsed.push({ type: 'name', text: t.replace(/\*\*/g,'') });
+        nameFound = true;
+        continue;
+      }
+
+      // Contact line: contains · or | but no ## and not a job title with dates
+      if (nameFound && !parsed.find(p=>p.type==='contact') &&
+          (t.includes('·') || (t.includes('|') && !/\d{4}/.test(t))) &&
+          !/^#{1,3}/.test(t)) {
+        parsed.push({ type: 'contact', text: t.replace(/\*\*/g,'').replace(/\|/g,'·') });
+        continue;
       }
 
       // Section header
-      const isSectionHead = /^#{1,3}\s+/.test(trimmed) || /^[A-Z][A-Z\s&\/]{4,}$/.test(trimmed);
-      // Job title line
-      const isJobTitle = /\s\|\s/.test(trimmed) && !trimmed.startsWith('-');
-      // Bullet
-      const isBullet = /^[-•–]\s+/.test(trimmed);
-
-      if (isSectionHead) {
-        y = checkY(y, 14);
-        const label = trimmed.replace(/^#{1,3}\s+/, '').toUpperCase();
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(...NAVY);
-        doc.text(label, marginL, y);
-        y += 1.5;
-        doc.setDrawColor(...NAVY);
-        doc.setLineWidth(0.5);
-        doc.line(marginL, y, pageW - marginR, y);
-        y += 5;
-      } else if (isJobTitle) {
-        y = checkY(y, 8);
-        const parts = trimmed.replace(/\*\*/g, '').split(/\s\|\s/);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(...BLACK);
-        doc.text(parts[0] || '', marginL, y);
-        if (parts[1]) {
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10);
-          doc.setTextColor(...NAVY);
-          const p1w = doc.getTextWidth(parts[0] + '  ·  ');
-          doc.text('  ·  ' + parts[1], marginL + doc.getTextWidth(parts[0]), y);
-        }
-        if (parts[2]) {
-          doc.setFont('helvetica', 'italic');
-          doc.setFontSize(9);
-          doc.setTextColor(...GREY);
-          const rightText = parts[2];
-          doc.text(rightText, pageW - marginR - doc.getTextWidth(rightText), y);
-        }
-        y += 6;
-      } else if (isBullet) {
-        y = checkY(y, 6);
-        const content = trimmed.replace(/^[-•–]\s+/, '').replace(/\*\*(.+?)\*\*/g, '$1');
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9.5);
-        doc.setTextColor(...BLACK);
-        doc.text('–', marginL + 2, y);
-        const wrapped = doc.splitTextToSize(content, maxW - 10);
-        wrapped.forEach((wl, i) => {
-          y = checkY(y, 5);
-          doc.text(wl, marginL + 9, y);
-          if (i < wrapped.length - 1) y += 5;
-        });
-        y += 5.5;
-      } else {
-        // Regular paragraph
-        const clean = trimmed.replace(/\*\*(.+?)\*\*/g, '$1').replace(/^---$/, '');
-        if (!clean || clean === '---') { y += 2; return; }
-        y = checkY(y, 6);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9.5);
-        doc.setTextColor(...BLACK);
-        const wrapped = doc.splitTextToSize(clean, maxW);
-        wrapped.forEach((wl, i) => {
-          y = checkY(y, 5);
-          doc.text(wl, marginL, y);
-          if (i < wrapped.length - 1) y += 5;
-        });
-        y += 5.5;
+      if (/^#{1,3}\s+/.test(t) || (/^[A-Z][A-Z\s&\/\-]{3,}$/.test(t) && t.length < 40)) {
+        parsed.push({ type: 'section', text: t.replace(/^#{1,3}\s+/,'').toUpperCase() });
+        continue;
       }
-    });
-    return y;
+
+      // Job title line: has | with dates
+      if (/\s[|·]\s/.test(t) && !t.startsWith('-') && !t.startsWith('•')) {
+        const parts = t.replace(/\*\*/g,'').split(/\s[|·]\s/);
+        parsed.push({ type: 'jobtitle', title: parts[0]||'', company: parts[1]||'', dates: parts[2]||'' });
+        continue;
+      }
+
+      // Bullet
+      if (/^[-•–]\s+/.test(t)) {
+        const text = t.replace(/^[-•–]\s+/,'').replace(/\*\*(.+?)\*\*/g,'$1');
+        parsed.push({ type: 'bullet', text });
+        continue;
+      }
+
+      // Rule / divider
+      if (t === '---') { parsed.push({ type: 'rule' }); continue; }
+
+      // Body paragraph
+      const text = t.replace(/\*\*(.+?)\*\*/g,'$1');
+      parsed.push({ type: 'body', text });
+    }
+    return parsed;
   }
 
-  // ── CV PAGE ──
-  if (window._cvText) {
-    renderCVtoPDF(window._cvText);
+  // ── RENDER CV ──
+  function renderCV(raw) {
+    const items = parseCVLines(raw);
+    let afterSection = false;
+    let afterJobTitle = false;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const next = items[i+1];
+
+      if (item.type === 'space') {
+        y += 1.5;
+        continue;
+      }
+
+      if (item.type === 'rule') {
+        hRule(y, C.rule, 0.2);
+        y += 4;
+        continue;
+      }
+
+      if (item.type === 'name') {
+        // Large name centred with navy accent bar below
+        setT(T.name);
+        const nameW = doc.getTextWidth(item.text);
+        doc.text(item.text, PW/2, y, { align: 'center' });
+        y += 3;
+        // Thick accent line under name
+        doc.setDrawColor(...C.accent);
+        doc.setLineWidth(1.2);
+        const barW = Math.min(nameW + 30, CW);
+        doc.line(PW/2 - barW/2, y, PW/2 + barW/2, y);
+        y += 6;
+        afterSection = false;
+        continue;
+      }
+
+      if (item.type === 'contact') {
+        setT(T.contact);
+        doc.text(item.text, PW/2, y, { align: 'center' });
+        y += 8;
+        continue;
+      }
+
+      if (item.type === 'section') {
+        checkY(14);
+        y += afterSection ? 4 : 6;
+        setT(T.section);
+        doc.text(item.text, ML, y);
+        y += 1.8;
+        // Navy rule under section
+        doc.setDrawColor(...C.navy);
+        doc.setLineWidth(0.6);
+        doc.line(ML, y, PW-MR, y);
+        y += 5;
+        afterSection = true;
+        afterJobTitle = false;
+        continue;
+      }
+
+      if (item.type === 'jobtitle') {
+        checkY(10);
+        if (afterJobTitle) y += 5;
+        // Title left, dates right on same line
+        setT(T.dates);
+        const dateW = doc.getTextWidth(item.dates);
+        doc.text(item.dates, PW - MR, y, { align: 'right' });
+
+        setT(T.jobTitle);
+        const titleMaxW = CW - dateW - 5;
+        doc.text(item.title, ML, y);
+
+        y += 5;
+        // Company name on next line
+        if (item.company) {
+          setT(T.company);
+          doc.text(item.company, ML, y);
+          y += 5;
+        }
+        afterJobTitle = true;
+        afterSection = false;
+        continue;
+      }
+
+      if (item.type === 'bullet') {
+        checkY(6);
+        // Accent dot
+        doc.setFillColor(...C.accent);
+        doc.circle(ML + 1.5, y - 1.5, 1, 'F');
+
+        setT(T.bullet);
+        const wrapped = doc.splitTextToSize(item.text, CW - 8);
+        wrapped.forEach((line, li) => {
+          if (li > 0) checkY(5);
+          doc.text(line, ML + 6, y);
+          if (li < wrapped.length - 1) y += 5;
+        });
+        y += 5.5;
+        afterSection = false;
+        continue;
+      }
+
+      if (item.type === 'body') {
+        checkY(6);
+        setT(T.body);
+        const wrapped = doc.splitTextToSize(item.text, CW);
+        wrapped.forEach((line, li) => {
+          if (li > 0) checkY(5);
+          doc.text(line, ML, y);
+          if (li < wrapped.length - 1) y += 5.2;
+        });
+        y += 5.5;
+        afterSection = false;
+        continue;
+      }
+    }
   }
 
-  // ── COVER LETTER PAGE ──
-  if (window._coverText && currentTab !== 'cv') {
-    doc.addPage();
-    let y = marginT;
+  // ── RENDER COVER LETTER ──
+  function renderCoverLetter(raw) {
+    newPage();
+
+    // Header bar
+    doc.setFillColor(...C.navy);
+    doc.rect(0, 0, PW, 14, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.setTextColor(...NAVY);
-    doc.text('COVER LETTER', marginL, y);
-    y += 2;
-    doc.setDrawColor(...NAVY);
-    doc.setLineWidth(0.5);
-    doc.line(marginL, y, pageW - marginR, y);
-    y += 8;
-
-    const coverClean = window._coverText.replace(/\*\*(.+?)\*\*/g, '$1').replace(/^#{1,3}\s+/gm, '');
-    const coverParas = coverClean.split('\n\n');
-    coverParas.forEach(para => {
-      const trimmed = para.trim();
-      if (!trimmed) return;
-      y = checkY(y, 8);
+    doc.setTextColor(255,255,255);
+    doc.text('COVER LETTER', ML, 9.5);
+    if (window._jobTitle) {
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(...BLACK);
-      const wrapped = doc.splitTextToSize(trimmed, maxW);
-      wrapped.forEach(wl => {
-        y = checkY(y, 5);
-        doc.text(wl, marginL, y);
+      doc.setFontSize(8.5);
+      doc.setTextColor(180, 200, 220);
+      const sub = `${window._jobTitle}${window._company ? '  ·  ' + window._company : ''}`;
+      doc.text(sub, PW - MR, 9.5, { align: 'right' });
+    }
+    y = 24;
+
+    const clean = raw.replace(/\*\*(.+?)\*\*/g,'$1').replace(/^#{1,3}\s+/gm,'');
+    const paras = clean.split(/\n{2,}/);
+
+    paras.forEach((para, pi) => {
+      const t = para.trim();
+      if (!t) return;
+      checkY(10);
+
+      // "Dear Hiring Manager" / salutation
+      if (t.startsWith('Dear') || t.startsWith('Yours sincerely') || t.startsWith('Kind regards')) {
+        setT({ ...T.body, style: 'bold', color: C.navy });
+        doc.text(t, ML, y);
+        y += 7;
+        return;
+      }
+
+      setT(T.body);
+      const wrapped = doc.splitTextToSize(t, CW);
+      wrapped.forEach(line => {
+        checkY(5.5);
+        doc.text(line, ML, y);
         y += 5.5;
       });
-      y += 4;
+      y += 3.5; // paragraph gap
     });
   }
 
-  // Footer on every page
-  const totalPages = doc.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(160, 170, 180);
-    doc.text('Prepared by Susan AI · susanai.co', marginL, pageH - 8);
-    doc.text(`Page ${i} of ${totalPages}`, pageW - marginR - doc.getTextWidth(`Page ${i} of ${totalPages}`), pageH - 8);
+  // ── FOOTERS ──
+  function addFooters() {
+    const total = doc.getNumberOfPages();
+    for (let p = 1; p <= total; p++) {
+      doc.setPage(p);
+      // Subtle footer line
+      doc.setDrawColor(...C.rule);
+      doc.setLineWidth(0.2);
+      doc.line(ML, PH - 12, PW - MR, PH - 12);
+      setT(T.footer);
+      doc.text('Prepared by Susan AI  ·  susanai.co', ML, PH - 8);
+      doc.text(`${p} / ${total}`, PW - MR, PH - 8, { align: 'right' });
+    }
   }
 
-  const name = window._jobTitle ? `${window._jobTitle.replace(/\s+/g,'_')}_Application` : 'Susan_AI_Application';
-  doc.save(`${name}.pdf`);
+  // ── GENERATE ──
+  if (window._cvText) renderCV(window._cvText);
+  if (window._coverText && currentTab !== 'cv') renderCoverLetter(window._coverText);
+  addFooters();
+
+  const fname = window._jobTitle
+    ? `${(window._cvText.split('\n')[0]||'CV').replace(/\*\*/g,'').trim().replace(/\s+/g,'_')}_${window._jobTitle.replace(/\s+/g,'_')}`
+    : 'Susan_AI_Application';
+  doc.save(`${fname}.pdf`);
 }
 
 function downloadWord() {
