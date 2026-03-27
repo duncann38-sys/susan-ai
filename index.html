@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1846,53 +1847,48 @@ function downloadPDF() {
   function parseCVLines(raw) {
     const lines = raw.split('\n');
     const parsed = [];
-    let nameFound = false;
 
-    for (let i = 0; i < lines.length; i++) {
-      const t = lines[i].trim();
+    // Find first section header index
+    let firstSectionIdx = lines.findIndex(l => {
+      const t = l.trim();
+      return /^#{1,3}\s+/.test(t) || /^[A-Z][A-Z\s&\/\-]{4,}$/.test(t);
+    });
+    if (firstSectionIdx < 0) firstSectionIdx = Math.min(5, lines.length);
+
+    // Header block = everything before first section
+    const headerLines = lines.slice(0, firstSectionIdx).map(l => l.trim()).filter(Boolean);
+    if (headerLines.length > 0) {
+      parsed.push({ type: 'name', text: headerLines[0].replace(/\*\*/g,'') });
+    }
+    if (headerLines.length > 1) {
+      const contact = headerLines.slice(1).join('  ·  ')
+        .replace(/\*\*/g,'').replace(/\s*\|\s*/g,' · ').replace(/\s{2,}/g,' ');
+      parsed.push({ type: 'contact', text: contact });
+    }
+
+    // Body
+    for (const line of lines.slice(firstSectionIdx)) {
+      const t = line.trim();
       if (!t) { parsed.push({ type: 'space' }); continue; }
+      if (t === '---') { parsed.push({ type: 'rule' }); continue; }
 
-      // Name: first non-empty, non-special line
-      if (!nameFound && !/^[#\-•–·]/.test(t) && !t.includes('|') && /^[A-Z]/.test(t)) {
-        parsed.push({ type: 'name', text: t.replace(/\*\*/g,'') });
-        nameFound = true;
-        continue;
-      }
-
-      // Contact line: contains · or | but no ## and not a job title with dates
-      if (nameFound && !parsed.find(p=>p.type==='contact') &&
-          (t.includes('·') || (t.includes('|') && !/\d{4}/.test(t))) &&
-          !/^#{1,3}/.test(t)) {
-        parsed.push({ type: 'contact', text: t.replace(/\*\*/g,'').replace(/\|/g,'·') });
-        continue;
-      }
-
-      // Section header
-      if (/^#{1,3}\s+/.test(t) || (/^[A-Z][A-Z\s&\/\-]{3,}$/.test(t) && t.length < 40)) {
+      if (/^#{1,3}\s+/.test(t) || /^[A-Z][A-Z\s&\/\-]{4,}$/.test(t)) {
         parsed.push({ type: 'section', text: t.replace(/^#{1,3}\s+/,'').toUpperCase() });
         continue;
       }
 
-      // Job title line: has | with dates
-      if (/\s[|·]\s/.test(t) && !t.startsWith('-') && !t.startsWith('•')) {
+      if (/\s[|·]\s/.test(t) && !/^[-•–]/.test(t)) {
         const parts = t.replace(/\*\*/g,'').split(/\s[|·]\s/);
-        parsed.push({ type: 'jobtitle', title: parts[0]||'', company: parts[1]||'', dates: parts[2]||'' });
+        parsed.push({ type: 'jobtitle', title: (parts[0]||'').trim(), company: (parts[1]||'').trim(), dates: (parts[2]||'').trim() });
         continue;
       }
 
-      // Bullet
       if (/^[-•–]\s+/.test(t)) {
-        const text = t.replace(/^[-•–]\s+/,'').replace(/\*\*(.+?)\*\*/g,'$1');
-        parsed.push({ type: 'bullet', text });
+        parsed.push({ type: 'bullet', text: t.replace(/^[-•–]\s+/,'').replace(/\*\*(.+?)\*\*/g,'$1') });
         continue;
       }
 
-      // Rule / divider
-      if (t === '---') { parsed.push({ type: 'rule' }); continue; }
-
-      // Body paragraph
-      const text = t.replace(/\*\*(.+?)\*\*/g,'$1');
-      parsed.push({ type: 'body', text });
+      parsed.push({ type: 'body', text: t.replace(/\*\*(.+?)\*\*/g,'$1') });
     }
     return parsed;
   }
@@ -1900,116 +1896,95 @@ function downloadPDF() {
   // ── RENDER CV ──
   function renderCV(raw) {
     const items = parseCVLines(raw);
-    let afterSection = false;
-    let afterJobTitle = false;
+    let lastType = '';
 
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const next = items[i+1];
-
-      if (item.type === 'space') {
-        y += 1.5;
-        continue;
-      }
-
-      if (item.type === 'rule') {
-        hRule(y, C.rule, 0.2);
-        y += 4;
-        continue;
-      }
+    for (const item of items) {
+      if (item.type === 'space') { y += 2; continue; }
+      if (item.type === 'rule') { hRule(y, C.rule, 0.2); y += 4; continue; }
 
       if (item.type === 'name') {
-        // Large name centred with navy accent bar below
         setT(T.name);
-        const nameW = doc.getTextWidth(item.text);
         doc.text(item.text, PW/2, y, { align: 'center' });
-        y += 3;
-        // Thick accent line under name
+        y += 3.5;
         doc.setDrawColor(...C.accent);
-        doc.setLineWidth(1.2);
-        const barW = Math.min(nameW + 30, CW);
-        doc.line(PW/2 - barW/2, y, PW/2 + barW/2, y);
-        y += 6;
-        afterSection = false;
+        doc.setLineWidth(1.0);
+        setT(T.name);
+        const bw = Math.min(doc.getTextWidth(item.text) + 24, CW);
+        doc.line(PW/2 - bw/2, y, PW/2 + bw/2, y);
+        y += 7;
+        lastType = 'name';
         continue;
       }
 
       if (item.type === 'contact') {
         setT(T.contact);
-        doc.text(item.text, PW/2, y, { align: 'center' });
-        y += 8;
+        const wrapped = doc.splitTextToSize(item.text, CW);
+        wrapped.forEach(l => { doc.text(l, PW/2, y, { align: 'center' }); y += 5; });
+        y += 4;
+        lastType = 'contact';
         continue;
       }
 
       if (item.type === 'section') {
         checkY(14);
-        y += afterSection ? 4 : 6;
+        y += (lastType === 'bullet' || lastType === 'body') ? 6 : 3;
         setT(T.section);
         doc.text(item.text, ML, y);
-        y += 1.8;
-        // Navy rule under section
+        y += 2;
         doc.setDrawColor(...C.navy);
-        doc.setLineWidth(0.6);
-        doc.line(ML, y, PW-MR, y);
+        doc.setLineWidth(0.5);
+        doc.line(ML, y, PW - MR, y);
         y += 5;
-        afterSection = true;
-        afterJobTitle = false;
+        lastType = 'section';
         continue;
       }
 
       if (item.type === 'jobtitle') {
-        checkY(10);
-        if (afterJobTitle) y += 5;
-        // Title left, dates right on same line
-        setT(T.dates);
-        const dateW = doc.getTextWidth(item.dates);
-        doc.text(item.dates, PW - MR, y, { align: 'right' });
-
+        checkY(12);
+        y += lastType === 'bullet' ? 5 : 2;
+        if (item.dates) {
+          setT(T.dates);
+          doc.text(item.dates, PW - MR, y, { align: 'right' });
+        }
         setT(T.jobTitle);
-        const titleMaxW = CW - dateW - 5;
         doc.text(item.title, ML, y);
-
         y += 5;
-        // Company name on next line
         if (item.company) {
           setT(T.company);
           doc.text(item.company, ML, y);
           y += 5;
         }
-        afterJobTitle = true;
-        afterSection = false;
+        lastType = 'jobtitle';
         continue;
       }
 
       if (item.type === 'bullet') {
-        checkY(6);
-        // Accent dot
+        checkY(7);
         doc.setFillColor(...C.accent);
-        doc.circle(ML + 1.5, y - 1.5, 1, 'F');
-
+        doc.circle(ML + 1.5, y - 1.8, 0.9, 'F');
         setT(T.bullet);
         const wrapped = doc.splitTextToSize(item.text, CW - 8);
-        wrapped.forEach((line, li) => {
-          if (li > 0) checkY(5);
-          doc.text(line, ML + 6, y);
-          if (li < wrapped.length - 1) y += 5;
+        wrapped.forEach((l, li) => {
+          if (li > 0) { checkY(5.5); }
+          doc.text(l, ML + 6, y);
+          if (li < wrapped.length - 1) y += 5.2;
         });
-        y += 5.5;
-        afterSection = false;
+        y += 5.8;
+        lastType = 'bullet';
         continue;
       }
 
       if (item.type === 'body') {
-        checkY(6);
+        checkY(7);
         setT(T.body);
         const wrapped = doc.splitTextToSize(item.text, CW);
-        wrapped.forEach((line, li) => {
-          if (li > 0) checkY(5);
-          doc.text(line, ML, y);
+        wrapped.forEach((l, li) => {
+          if (li > 0) { checkY(5.5); }
+          doc.text(l, ML, y);
           if (li < wrapped.length - 1) y += 5.2;
         });
         y += 5.5;
-        afterSection = false;
+        lastType = 'body';
         continue;
       }
     }
