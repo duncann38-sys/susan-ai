@@ -855,6 +855,223 @@ textarea:focus, input[type="text"]:focus {
   border-color: var(--sky);
 }
 
+/* ── STREAMING BOX ── */
+.stream-box {
+  display: none;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  margin-top: 18px;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.3s ease both;
+}
+
+.stream-header {
+  background: var(--navy);
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stream-dot {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 1s ease infinite;
+}
+
+.stream-label {
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.stream-content {
+  padding: 20px 24px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  min-height: 80px;
+  max-height: 220px;
+  overflow: hidden;
+  position: relative;
+}
+
+.stream-content::after {
+  content: '▋';
+  animation: pulse 0.7s ease infinite;
+  color: var(--sky);
+}
+
+/* ── MOBILE CSS ── */
+@media (max-width: 640px) {
+  .nav {
+    padding: 12px 16px;
+  }
+
+  .logo { font-size: 18px; }
+
+  .nav-tag {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  .hero {
+    padding: 48px 16px 56px;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+    letter-spacing: -0.5px;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    margin-bottom: 32px;
+  }
+
+  .hero-stats {
+    gap: 28px;
+  }
+
+  .stat-n { font-size: 24px; }
+  .stat-l { font-size: 11px; }
+
+  .trust-bar {
+    gap: 14px;
+    padding: 12px 16px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .trust-item { font-size: 12px; white-space: nowrap; }
+
+  .main {
+    padding: 24px 14px 60px;
+  }
+
+  .tabs {
+    padding: 4px;
+    gap: 2px;
+    margin-bottom: 18px;
+  }
+
+  .tab-btn {
+    font-size: 11px;
+    padding: 9px 6px;
+  }
+
+  .card {
+    padding: 20px 18px;
+    border-radius: 14px;
+  }
+
+  .card-title { font-size: 15px; }
+  .card-sub { font-size: 12px; }
+
+  .step-num {
+    width: 30px; height: 30px; min-width: 30px;
+    font-size: 13px;
+  }
+
+  textarea, input[type="text"] {
+    font-size: 16px; /* prevents iOS zoom */
+    padding: 11px 13px;
+  }
+
+  .tone-g {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .tone-lbl {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+
+  .cta-btn {
+    font-size: 15px;
+    padding: 16px;
+  }
+
+  .loading { padding: 32px 16px; }
+
+  .loading-step { font-size: 12px; padding: 7px 12px; }
+
+  .paywall {
+    padding: 32px 18px;
+    border-radius: 16px;
+  }
+
+  .paywall h2 { font-size: 22px; }
+  .paywall p { font-size: 14px; }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .price-options {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .price-opt { width: 100%; max-width: 280px; }
+
+  .pay-btn {
+    font-size: 14px;
+    padding: 16px 24px;
+  }
+
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 16px 18px;
+  }
+
+  .result-title { font-size: 14px; }
+
+  .action-btns { width: 100%; justify-content: flex-start; }
+
+  .action-btn {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+
+  .result-body { padding: 20px 18px; }
+
+  .scores-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .score-n { font-size: 22px; }
+
+  .formatted-cv {
+    padding: 18px;
+    font-size: 13px;
+  }
+
+  .cover-letter-box {
+    padding: 16px;
+    font-size: 13px;
+  }
+
+  .preview-body { padding: 18px; }
+
+  .hero-badge { font-size: 10px; padding: 6px 14px; }
+
+  .stream-content { padding: 16px 18px; font-size: 12px; }
+}
+
 footer {
   text-align: center;
   padding: 32px 24px;
@@ -1005,6 +1222,15 @@ footer a { color: var(--sky); text-decoration: none; }
       <div class="loading-step" id="ls3"><span class="step-icon">✏️</span> Rewriting your CV for maximum impact...</div>
       <div class="loading-step" id="ls4"><span class="step-icon">✉️</span> Crafting your tailored cover letter...</div>
     </div>
+  </div>
+
+  <!-- STREAMING BOX -->
+  <div class="stream-box" id="stream-box">
+    <div class="stream-header">
+      <div class="stream-dot"></div>
+      <div class="stream-label">Susan is writing your CV...</div>
+    </div>
+    <div class="stream-content" id="stream-text"></div>
   </div>
 
   <!-- PREVIEW -->
@@ -1283,28 +1509,68 @@ WRITING RULES FOR THE COVER LETTER — follow every one of these:
   try {
     const response = await fetch('https://susan-proxy.duncann38.workers.dev/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 4000,
+        stream: true,
         messages: [{ role: 'user', content: prompt }]
       })
     });
 
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      clearInterval(interval);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('gen-btn').disabled = false;
+      showError(err?.error?.message || 'Something went wrong. Please try again.');
+      return;
+    }
+
+    // Switch to streaming UI
     clearInterval(interval);
     document.getElementById('loading').style.display = 'none';
     document.getElementById('gen-btn').disabled = false;
 
-    const data = await response.json();
+    // Show live streaming preview box
+    const streamBox = document.getElementById('stream-box');
+    const streamText = document.getElementById('stream-text');
+    streamBox.style.display = 'block';
+    streamBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    if (data.content && data.content[0] && data.content[0].text) {
-      window._fullResult = data.content[0].text;
-      showPreviewAndPaywall(data.content[0].text);
-    } else {
-      showError('Something went wrong. Please try again.');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulated = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // keep incomplete line
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
+            accumulated += parsed.delta.text;
+            // Show live text — strip section markers for readability
+            streamText.textContent = accumulated.replace(/## [A-Z ]+\n/g, '\n').substring(0, 800) + (accumulated.length > 800 ? '...' : '');
+          }
+        } catch(e) {}
+      }
     }
+
+    // Done streaming
+    streamBox.style.display = 'none';
+    window._fullResult = accumulated;
+    showPreviewAndPaywall(accumulated);
+
   } catch(err) {
     clearInterval(interval);
     showError('Connection error. Please check your internet and try again.');
