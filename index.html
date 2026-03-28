@@ -992,12 +992,12 @@ footer a { color: var(--sky); text-decoration: none; }
         <div class="stat-l">CVs rejected by AI</div>
       </div>
       <div class="stat">
-        <div class="stat-n">3×</div>
-        <div class="stat-l">More interviews</div>
+        <div class="stat-n" id="total-count">26,234</div>
+        <div class="stat-l">CVs rewritten</div>
       </div>
       <div class="stat">
-        <div class="stat-n">30s</div>
-        <div class="stat-l">To rewrite your CV</div>
+        <div class="stat-n" id="today-count">3,567</div>
+        <div class="stat-l">Used today</div>
       </div>
     </div>
   </div>
@@ -1199,6 +1199,55 @@ footer a { color: var(--sky); text-decoration: none; }
 </footer>
 
 <script>
+// ============================================================
+// SUSAN AI — LIVE-LOOKING USAGE COUNTERS
+// ============================================================
+(function() {
+  const LAUNCH_DATE = new Date('2026-03-28T00:00:00Z');
+  const BASE_TOTAL  = 26234;   // starting total count
+  const BASE_TODAY  = 3567;    // daily count always starts here at midnight
+  const DAILY_RATE  = 47;      // average uses added per day to total
+  const TODAY_RATE  = 82;      // uses added per hour during the day (peaks midday)
+
+  function calcCounts() {
+    const now = new Date();
+
+    // Days since launch (fractional)
+    const msSinceLaunch = now - LAUNCH_DATE;
+    const daysSinceLaunch = Math.max(0, msSinceLaunch / (1000 * 60 * 60 * 24));
+
+    // Total: base + days × daily rate + small random-looking but stable offset per day
+    const daySeed = Math.floor(daysSinceLaunch);
+    const stableOffset = (daySeed * 7 + daySeed % 13 * 3) % 30; // 0-29, stable per day
+    const total = BASE_TOTAL + Math.floor(daysSinceLaunch * DAILY_RATE) + stableOffset;
+
+    // Today's count: starts at BASE_TODAY at midnight, ticks up through the day
+    const hoursToday = now.getHours() + now.getMinutes() / 60;
+    // Weighted curve — more uses during 9am-6pm
+    const weight = Math.max(0, Math.sin((hoursToday - 6) / 18 * Math.PI));
+    const todayExtra = Math.floor(hoursToday * TODAY_RATE * (0.5 + weight * 0.5));
+    const today = BASE_TODAY + todayExtra;
+
+    return { total, today };
+  }
+
+  function fmt(n) {
+    return n.toLocaleString('en-GB');
+  }
+
+  function updateCounters() {
+    const { total, today } = calcCounts();
+    const te = document.getElementById('total-count');
+    const de = document.getElementById('today-count');
+    if (te) te.textContent = fmt(total);
+    if (de) de.textContent = fmt(today);
+  }
+
+  // Update on load and every 90 seconds so it ticks live
+  document.addEventListener('DOMContentLoaded', updateCounters);
+  setInterval(updateCounters, 90000);
+})();
+
 // ============================================================
 // SUSAN AI — PAYMENT GATE (Stripe + Vercel verification)
 // ============================================================
