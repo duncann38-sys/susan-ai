@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -636,6 +635,72 @@ textarea:focus, input[type="text"]:focus {
 
 .pay-note { font-size: 12px; color: rgba(255,255,255,0.3); }
 
+/* ── PROMO CODE ── */
+.promo-wrap {
+  margin-bottom: 24px;
+}
+
+.promo-row {
+  display: flex;
+  gap: 8px;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.promo-input {
+  flex: 1;
+  background: rgba(255,255,255,0.08) !important;
+  border: 1.5px solid rgba(255,255,255,0.15) !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  font-family: 'Nunito Sans', sans-serif !important;
+  font-size: 14px !important;
+  color: white !important;
+  outline: none !important;
+  resize: none !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.promo-input::placeholder {
+  color: rgba(255,255,255,0.3) !important;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.promo-input:focus {
+  border-color: rgba(74,159,212,0.6) !important;
+  background: rgba(255,255,255,0.12) !important;
+  box-shadow: 0 0 0 3px rgba(74,159,212,0.15) !important;
+}
+
+.promo-apply-btn {
+  padding: 12px 20px;
+  background: rgba(74,159,212,0.2);
+  border: 1.5px solid rgba(74,159,212,0.4);
+  border-radius: 10px;
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.promo-apply-btn:hover {
+  background: rgba(74,159,212,0.35);
+  border-color: rgba(74,159,212,0.7);
+}
+
+.promo-msg {
+  font-size: 13px;
+  margin-top: 10px;
+  text-align: center;
+  display: none;
+  font-weight: 600;
+}
+
 /* ── RESULT ── */
 .result-wrap {
   display: none;
@@ -952,6 +1017,8 @@ textarea:focus, input[type="text"]:focus {
   .preview-body { padding: 18px; }
   .hero-badge { font-size: 10px; padding: 6px 14px; }
   .stream-content { padding: 16px 18px; font-size: 12px; }
+  .promo-row { flex-direction: column; }
+  .promo-apply-btn { width: 100%; }
 }
 
 footer {
@@ -1156,6 +1223,21 @@ footer a { color: var(--sky); text-decoration: none; }
         </div>
       </div>
 
+      <!-- ── PROMO CODE ── -->
+      <div class="promo-wrap">
+        <div class="promo-row">
+          <input
+            type="text"
+            id="promo-input"
+            class="promo-input"
+            placeholder="Have a promo code?"
+            onkeydown="if(event.key==='Enter') applyPromoCode()"
+          >
+          <button class="promo-apply-btn" onclick="applyPromoCode()">Apply</button>
+        </div>
+        <div class="promo-msg" id="promo-msg"></div>
+      </div>
+
       <a href="https://buy.stripe.com/4gM3cuclbgLj1nTggo8ww03" class="pay-btn" id="pay-btn" target="_blank">
         Unlock Full Results — £15/month →
       </a>
@@ -1204,36 +1286,26 @@ footer a { color: var(--sky); text-decoration: none; }
 // ============================================================
 (function() {
   const LAUNCH_DATE = new Date('2026-03-28T00:00:00Z');
-  const BASE_TOTAL  = 26234;   // starting total count
-  const BASE_TODAY  = 3567;    // daily count always starts here at midnight
-  const DAILY_RATE  = 47;      // average uses added per day to total
-  const TODAY_RATE  = 82;      // uses added per hour during the day (peaks midday)
+  const BASE_TOTAL  = 26234;
+  const BASE_TODAY  = 3567;
+  const DAILY_RATE  = 47;
+  const TODAY_RATE  = 82;
 
   function calcCounts() {
     const now = new Date();
-
-    // Days since launch (fractional)
     const msSinceLaunch = now - LAUNCH_DATE;
     const daysSinceLaunch = Math.max(0, msSinceLaunch / (1000 * 60 * 60 * 24));
-
-    // Total: base + days × daily rate + small random-looking but stable offset per day
     const daySeed = Math.floor(daysSinceLaunch);
-    const stableOffset = (daySeed * 7 + daySeed % 13 * 3) % 30; // 0-29, stable per day
+    const stableOffset = (daySeed * 7 + daySeed % 13 * 3) % 30;
     const total = BASE_TOTAL + Math.floor(daysSinceLaunch * DAILY_RATE) + stableOffset;
-
-    // Today's count: starts at BASE_TODAY at midnight, ticks up through the day
     const hoursToday = now.getHours() + now.getMinutes() / 60;
-    // Weighted curve — more uses during 9am-6pm
     const weight = Math.max(0, Math.sin((hoursToday - 6) / 18 * Math.PI));
     const todayExtra = Math.floor(hoursToday * TODAY_RATE * (0.5 + weight * 0.5));
     const today = BASE_TODAY + todayExtra;
-
     return { total, today };
   }
 
-  function fmt(n) {
-    return n.toLocaleString('en-GB');
-  }
+  function fmt(n) { return n.toLocaleString('en-GB'); }
 
   function updateCounters() {
     const { total, today } = calcCounts();
@@ -1243,13 +1315,75 @@ footer a { color: var(--sky); text-decoration: none; }
     if (de) de.textContent = fmt(today);
   }
 
-  // Update on load and every 90 seconds so it ticks live
   document.addEventListener('DOMContentLoaded', updateCounters);
   setInterval(updateCounters, 90000);
 })();
 
 // ============================================================
-// SUSAN AI — PAYMENT GATE (Stripe + Vercel verification)
+// PROMO CODES
+// ─────────────────────────────────────────────────────────────
+// FREE_CODES   → full access, no payment needed
+// HALF_CODES   → 50% off, redirects to discounted Stripe links
+// ============================================================
+
+const FREE_CODES = ['DUNCANFRIEND'];
+
+const HALF_CODES = {
+  'SUSAN50': {
+    single:  { url: 'https://buy.stripe.com/4gM3cuclbgLj1nTggo8ww03', label: 'Unlock Full Results — £2.50 →' },
+    monthly: { url: 'https://buy.stripe.com/4gM3cuclbgLj1nTggo8ww03', label: 'Unlock Full Results — £7.50/month →' }
+    // ↑ Replace both URLs above with your actual 50%-off Stripe Payment Links
+  }
+};
+
+function applyPromoCode() {
+  const raw   = (document.getElementById('promo-input').value || '').trim();
+  const code  = raw.toUpperCase();
+  const msg   = document.getElementById('promo-msg');
+
+  // Reset message
+  msg.style.display = 'none';
+  msg.textContent   = '';
+
+  if (!code) {
+    msg.style.color   = '#e05c5c';
+    msg.style.display = 'block';
+    msg.textContent   = '✗ Please enter a promo code.';
+    return;
+  }
+
+  // ── FREE CODE ──
+  if (FREE_CODES.includes(code)) {
+    msg.style.color   = '#6dd4a0';
+    msg.style.display = 'block';
+    msg.textContent   = '✓ Code applied — unlocking your results for free!';
+    localStorage.setItem('susan_access', 'granted');
+    setTimeout(() => window.unlockFullResults(), 900);
+    return;
+  }
+
+  // ── 50% OFF CODE ──
+  if (HALF_CODES[code]) {
+    const isMonthly = document.getElementById('p-monthly').classList.contains('selected');
+    const plan      = isMonthly ? 'monthly' : 'single';
+    const deal      = HALF_CODES[code][plan];
+    const btn       = document.getElementById('pay-btn');
+    btn.href        = deal.url;
+    btn.textContent = deal.label;
+    msg.style.color   = '#7dc8ea';
+    msg.style.display = 'block';
+    msg.textContent   = '✓ 50% discount applied! Click the button below to pay.';
+    return;
+  }
+
+  // ── INVALID ──
+  msg.style.color   = '#e05c5c';
+  msg.style.display = 'block';
+  msg.textContent   = '✗ Invalid code — please check and try again.';
+}
+
+// ============================================================
+// PAYMENT GATE (Stripe + Vercel verification)
 // ============================================================
 
 const VERCEL_VERIFY_URL = 'https://susan-verify.vercel.app/api/verify-session';
@@ -1261,14 +1395,11 @@ window._coverText = '';
 window._jobTitle = '';
 window._company = '';
 
-// Check payment status on page load
 window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get('session_id');
 
-  // ── CASE 1: Returning from Stripe with a real session_id ──
   if (sessionId) {
-    // Show a verifying message at the top
     const banner = document.createElement('div');
     banner.id = 'verify-banner';
     banner.style.cssText = 'background:var(--sky-light);border:1px solid var(--sky-mid);border-radius:10px;padding:14px 20px;font-size:14px;font-weight:600;color:var(--navy);margin-bottom:20px;text-align:center;';
@@ -1277,7 +1408,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     const tabs = document.querySelector('.tabs');
     if (main && tabs) main.insertBefore(banner, tabs);
 
-    // Clean the URL immediately so session_id isn't visible
     window.history.replaceState({}, document.title, window.location.pathname);
 
     try {
@@ -1289,15 +1419,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       const data = await res.json();
 
       if (data.valid) {
-        // ✅ Real payment confirmed — save to localStorage so they never hit paywall again
         localStorage.setItem('susan_access', 'granted');
-
         banner.style.background = 'var(--green-light)';
         banner.style.borderColor = 'var(--green)';
         banner.style.color = 'var(--green)';
         banner.textContent = '✓ Payment confirmed — your full results are unlocked!';
 
-        // If they had a result saved from before paying, show it now
         const savedResult = localStorage.getItem('susan_result');
         if (savedResult) {
           window._fullResult = savedResult;
@@ -1322,7 +1449,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // ── CASE 2: Returning user with saved localStorage token ──
   if (localStorage.getItem('susan_access') === 'granted') {
     const savedResult = localStorage.getItem('susan_result');
     if (savedResult) {
@@ -1343,7 +1469,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Check if user has paid (localStorage token)
 const isPaid = () => localStorage.getItem('susan_access') === 'granted';
 
 // ============================================================
@@ -1573,7 +1698,6 @@ WRITING RULES FOR THE COVER LETTER:
 }
 
 function showPreviewAndPaywall(text) {
-  // Save result to localStorage so it survives the Stripe redirect
   localStorage.setItem('susan_result', text);
   localStorage.setItem('susan_job', window._jobTitle || '');
   localStorage.setItem('susan_company', window._company || '');
@@ -1583,7 +1707,6 @@ function showPreviewAndPaywall(text) {
   document.getElementById('preview-text').textContent = preview;
   document.getElementById('preview-wrap').style.display = 'block';
 
-  // If already paid, skip paywall and go straight to results
   if (isPaid()) {
     window.unlockFullResults();
     return;
@@ -1679,7 +1802,6 @@ window.unlockFullResults = function() {
   window._cvText = cvText;
   window._coverText = coverText;
 
-  // Save CV and cover to localStorage for return visits
   localStorage.setItem('susan_cv', cvText);
   localStorage.setItem('susan_cover', coverText);
 
